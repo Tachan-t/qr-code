@@ -3,157 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Studio</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ushelp/EasyQRCodeJS@master/dist/easy.qrcode.min.js"></script>
+    <title>DevHub Pro - Studio Edition</title>
     
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.js"></script>
+
     <style>
-        body {
-            background: linear-gradient(135deg, #0323b5 0%, #1c96dd47 100%);
-            min-height: 100vh;
+        /* CSS Crítico embutido para garantir carregamento imediato */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code&display=swap');
+        
+        :root {
+            --bg-color: #000000;
+            --sidebar-bg: #0a0a0a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-white: #ffffff;
+            --text-muted: #a1a1aa;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--accent-white); 
+            min-height: 100vh; 
+            font-family: 'Inter', sans-serif; 
+            display: flex; 
+            margin: 0;
+        }
+
+        .sidebar { 
+            width: 260px; 
+            min-width: 260px;
+            border-right: 1px solid var(--glass-border); 
+            background: var(--sidebar-bg);
+            height: 100vh;
+            position: sticky;
+            top: 0;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Inter', sans-serif;
+            flex-direction: column;
         }
-        /* Efeito Glassmorphism */
-        .glass-card {
-            background: rgba(25, 148, 225, 0.2);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 119, 255, 0.37);
+
+        .main-content { 
+            flex: 1; 
+            padding: 48px; 
+            overflow-y: auto; 
+            height: 100vh;
+            box-sizing: border-box;
         }
+
+        .glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 1.5rem; 
+        }
+
+        .nav-btn { 
+            width: 100%; text-align: left; padding: 12px 16px; 
+            border-radius: 8px; transition: 0.2s; margin-bottom: 4px; 
+            display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: var(--text-muted);
+        }
+
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; }
+        .nav-btn.active { background: var(--accent-white); color: black; font-weight: 600; }
+
+        input, textarea, select {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: white !important;
+            outline: none;
+        }
+
+        .hidden { display: none; }
+
+        /* Estilo para Scrollbar Moderna */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
-<body class="p-6">
+<body>
 
-    <div class="glass-card w-full max-w-4xl p-8 flex flex-col md:flex-row gap-8">
+    <aside class="sidebar p-6 flex flex-col">
+        <div class="mb-10 px-2">
+            <h2 class="text-2xl font-black italic tracking-tighter">DEVHUB PRO</h2>
+            <p class="text-[9px] uppercase tracking-[3px] opacity-40">Studio Workspace</p>
+        </div>
         
-        <div class="flex-1 space-y-4 text-white">
-            <h1 class="text-3xl font-bold mb-6">QR Generator Pro</h1>
-            
-            <div>
-                <label class="block text-sm font-medium mb-1">URL ou Texto</label>
-                <input type="text" id="qr-text" placeholder="https://exemplo.com" 
-                    class="w-full p-2 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/60 outline-none focus:ring-2 ring-white/50">
-            </div>
+        <nav class="flex-1">
+            <button onclick="showTool('qr-tool')" id="btn-qr" class="nav-btn active"><span>🛠️</span> Gerador QR</button>
+            <button onclick="showTool('ocr-tool')" id="btn-ocr" class="nav-btn"><span>🖼️</span> Extrator OCR</button>
+            <button onclick="showTool('format-tool')" id="btn-format" class="nav-btn"><span>✨</span> Code Analytics</button>
+            <button onclick="showTool('units-tool')" id="btn-units" class="nav-btn"><span>📏</span> Design Units</button>
+            <button onclick="showTool('palette-tool')" id="btn-palette" class="nav-btn"><span>🎨</span> Palette Extractor</button>
+            <button onclick="showTool('translate-tool')" id="btn-translate" class="nav-btn"><span>🌐</span> Voice & Translate</button>
+            <button onclick="showTool('bg-remove-tool')" id="btn-bg" class="nav-btn"><span>👤</span> BG Remover</button>
+        </nav>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Cor do QR</label>
-                    <input type="color" id="color-dark" value="#000000" class="w-full h-10 rounded cursor-pointer bg-transparent">
+        <div class="mt-auto p-4 glass text-[10px] opacity-40 text-center font-bold">
+            v8.0 FINAL STABLE
+        </div>
+    </aside>
+
+    <main class="main-content">
+        
+        <section id="qr-tool" class="tool-section space-y-8">
+            <div class="glass p-8 grid lg:grid-cols-2 gap-12 shadow-2xl">
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-3xl font-black italic uppercase tracking-tighter">QR STUDIO</h3>
+                        <div id="contrast-status" class="contrast-badge badge-success">CONTRASTE SEGURO</div>
+                    </div>
+                    <input type="text" id="qr-input" value="https://google.com" oninput="generateQR()" class="w-full p-4 rounded-2xl">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="color" id="color-dark" value="#000000" oninput="generateQR()" class="w-full h-12 bg-transparent cursor-pointer">
+                        <input type="color" id="color-light" value="#ffffff" oninput="generateQR()" class="w-full h-12 bg-transparent cursor-pointer">
+                    </div>
+                    <div class="flex flex-col items-center gap-6 p-6 bg-white/5 rounded-3xl">
+                        <div id="qrcode"></div>
+                        <button onclick="downloadQR()" class="w-full py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest hover:opacity-90 transition">📥 Baixar PNG</button>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Cor do Fundo</label>
-                    <input type="color" id="color-light" value="#ffffff" class="w-col h-10 rounded cursor-pointer bg-transparent">
+                <div class="flex flex-col items-center justify-center border-l border-white/5 pl-8">
+                    <div class="w-80 h-44 bg-white rounded-2xl p-6 flex justify-between items-center shadow-2xl relative overflow-hidden">
+                        <div class="z-10 text-black"><h4 class="font-black text-xl italic">MOCKUP</h4><p class="text-[10px] opacity-60">IDENTITY CARD</p></div>
+                        <div id="mockup-qr" class="z-10"></div>
+                        <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-black/5 rounded-full"></div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div>
-                <label class="block text-sm font-medium mb-1">Estilo dos Pontos</label>
-                <select id="dot-style" class="w-full p-2 rounded-lg bg-white/20 border border-white/30 outline-none">
-                    <option value="square" class="text-black">Quadrado (Padrão)</option>
-                    <option value="rounded" class="text-black">Arredondado</option>
-                </select>
+        <section id="ocr-tool" class="tool-section hidden">
+            <div class="glass p-8 space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-3xl font-black italic uppercase tracking-tighter">OCR ENGINE</h3>
+                    <span class="text-[10px] border border-white/20 px-3 py-1 rounded-full opacity-60 uppercase font-bold">Tesseract AI</span>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div id="dropzone" class="border-2 border-dashed border-white/10 rounded-3xl p-10 text-center hover:bg-white/5 transition-all cursor-pointer h-64 flex flex-col items-center justify-center relative" onclick="document.getElementById('ocr-file').click()">
+                            <input type="file" id="ocr-file" class="hidden" accept="image/*" onchange="processOCR(this)">
+                            <div id="upload-placeholder">🖼️ <p class="text-xs mt-2 opacity-40 uppercase font-bold">Carregar Imagem</p></div>
+                            <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-contain p-2 bg-black/40">
+                        </div>
+                        <div id="ocr-progress-container" class="hidden">
+                            <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden"><div id="ocr-bar" class="bg-white h-full w-0 transition-all"></div></div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <textarea id="ocr-result" class="w-full h-64 bg-white/5 border border-white/10 rounded-2xl p-6 text-sm font-mono outline-none resize-none" placeholder="O texto aparecerá aqui..."></textarea>
+                        <button onclick="copyToClipboard('ocr-result')" class="w-full py-3 bg-white text-black rounded-xl font-bold uppercase text-[10px] tracking-widest">📋 Copiar Texto</button>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <div>
-                <label class="block text-sm font-medium mb-1">Logo Central (.png, .jpg)</label>
-                <input type="file" id="logo-input" accept="image/*" class="w-full text-sm">
+        <section id="format-tool" class="tool-section hidden">
+            <div class="glass p-8 space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-3xl font-black italic uppercase tracking-tighter">CODE ANALYTICS</h3>
+                    <div class="flex gap-2">
+                        <button onclick="analyzeAndFormat('json')" class="px-5 py-2 bg-white text-black rounded-xl text-xs font-bold uppercase">JSON</button>
+                        <button onclick="analyzeAndFormat('html')" class="px-5 py-2 border border-white/20 rounded-xl text-xs font-bold uppercase hover:bg-white/5">HTML</button>
+                    </div>
+                </div>
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 relative">
+                        <textarea id="code-input" oninput="updateMetrics()" class="w-full h-96 bg-white/5 border border-white/10 rounded-2xl p-6 font-mono text-sm outline-none resize-none" placeholder="Cole seu código aqui..."></textarea>
+                        <div class="absolute bottom-4 left-6 flex gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            <span>Lines: <span id="line-count" class="text-white">0</span></span>
+                            <span>Chars: <span id="char-count" class="text-white">0</span></span>
+                        </div>
+                    </div>
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                        <h4 class="text-[10px] font-bold uppercase opacity-40 tracking-widest mb-4">Insights</h4>
+                        <div id="analysis-results" class="text-xs space-y-4 italic opacity-60">Aguardando dados...</div>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <button id="generate-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 transition rounded-xl font-bold uppercase tracking-wider shadow-lg">
-                Gerar QR Code
-            </button>
+        <section id="units-tool" class="tool-section hidden">
+            <div class="glass p-8 space-y-6">
+                <h3 class="text-3xl font-black italic uppercase tracking-tighter">DESIGN UNITS</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4 text-center">
+                        <h4 class="text-[10px] font-bold uppercase tracking-widest opacity-40">Pixels para REM</h4>
+                        <div class="flex items-center gap-4">
+                            <input type="number" id="px-input" oninput="convertUnits('px')" class="w-full p-4 rounded-xl text-center" placeholder="PX">
+                            <span class="opacity-20">⇄</span>
+                            <input type="number" id="rem-input" oninput="convertUnits('rem')" class="w-full p-4 rounded-xl text-center" placeholder="REM">
+                        </div>
+                    </div>
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+                        <h4 class="text-[10px] font-bold uppercase tracking-widest opacity-40 text-center">Color Inspector</h4>
+                        <div class="flex gap-3">
+                            <input type="text" id="hex-input" oninput="convertColors()" class="w-full p-4 rounded-xl" placeholder="#HEX">
+                            <div id="color-preview" class="w-14 h-14 rounded-xl border border-white/10"></div>
+                        </div>
+                        <div id="rgb-output" class="text-xs font-mono opacity-50 text-center">rgb(0, 0, 0)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="palette-tool" class="tool-section hidden">
+            <div class="glass p-8 space-y-6">
+                <h3 class="text-3xl font-black italic uppercase tracking-tighter">PALETTE EXTRACTOR</h3>
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div id="palette-dropzone" class="border-2 border-dashed border-white/10 rounded-3xl p-10 text-center h-64 flex flex-col items-center justify-center cursor-pointer relative" onclick="document.getElementById('palette-file').click()">
+                        <input type="file" id="palette-file" class="hidden" accept="image/*" onchange="extractColors(this)">
+                        <p class="text-[10px] font-bold uppercase opacity-30">📸 Carregar Imagem</p>
+                        <img id="palette-preview" class="hidden absolute inset-0 w-full h-full object-contain p-2">
+                    </div>
+                    <div class="bg-white/5 p-6 rounded-3xl border border-white/10">
+                        <div id="palette-container" class="space-y-3"></div>
+                        <canvas id="palette-canvas" class="hidden"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="translate-tool" class="tool-section hidden">
+            <div class="glass p-8 space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-3xl font-black italic uppercase tracking-tighter">VOICE & TRANSLATE</h3>
+                    <div class="flex items-center gap-4">
+                        <select id="lang-from" class="bg-transparent text-[10px] font-bold uppercase outline-none border-none cursor-pointer">
+                            <option value="pt-PT" class="text-black">Português</option>
+                            <option value="en-GB" class="text-black">Inglês</option>
+                            <option value="es-ES" class="text-black">Espanhol</option>
+                            <option value="fr-FR" class="text-black">Francês</option>
+                            <option value="de-DE" class="text-black">Alemão</option>
+                            <option value="it-IT" class="text-black">Italiano</option>
+                        </select>
+                        
+                        <button onclick="swapLanguages()" class="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90" title="Inverter Idiomas">
+                            <span class="opacity-50 text-lg">⇄</span>
+                        </button>
+                        
+                        <select id="lang-to" class="bg-transparent text-[10px] font-bold uppercase outline-none border-none cursor-pointer">
+                            <option value="en-GB" class="text-black" selected>Inglês</option>
+                            <option value="pt-PT" class="text-black">Português</option>
+                            <option value="es-ES" class="text-black">Espanhol</option>
+                            <option value="fr-FR" class="text-black">Francês</option>
+                            <option value="de-DE" class="text-black">Alemão</option>
+                            <option value="it-IT" class="text-black">Italiano</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <textarea id="text-input" class="w-full h-48 bg-white/5 border border-white/10 rounded-2xl p-6 text-sm resize-none" placeholder="Escreve aqui..."></textarea>
+                        <button onclick="speakText('text-input', 'lang-from')" class="w-full py-3 border border-white/10 rounded-xl hover:bg-white hover:text-black transition font-bold uppercase text-[10px]">🔊 Ouvir Original</button>
+                    </div>
+                    <div class="space-y-4 relative">
+                        <textarea id="text-output" readonly class="w-full h-48 bg-white/5 border border-white/10 rounded-2xl p-6 text-sm resize-none" placeholder="Tradução..."></textarea>
+                        <div id="loader" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center rounded-2xl">⚡</div>
+                        <div class="flex gap-2">
+                            <button onclick="translateText()" class="flex-[2] py-3 bg-white text-black rounded-xl font-bold uppercase text-[10px]">🔄 Traduzir</button>
+                            <button onclick="speakText('text-output', 'lang-to')" class="flex-1 py-3 border border-white/10 rounded-xl hover:bg-white hover:text-black transition font-bold uppercase text-[10px]">🔊 Ouvir</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bg-remove-tool" class="tool-section hidden">
+    <div class="glass p-8 space-y-6">
+        <div class="flex justify-between items-center">
+            <h3 class="text-3xl font-black italic uppercase tracking-tighter text-white">Background Remover</h3>
+            <span class="text-[10px] border border-white/20 px-3 py-1 rounded-full opacity-60 uppercase font-bold">Local AI Processing</span>
         </div>
 
-        <div class="flex-1 flex flex-col items-center justify-center bg-white/10 rounded-2xl p-6 min-h-[300px]">
-            <div id="qrcode" class="bg-white p-4 rounded-lg shadow-inner"></div>
-            
-            <button id="download-btn" class="mt-6 flex items-center gap-2 text-white hover:underline font-semibold">
-                <span>⬇️</span> Descarregar PNG
-            </button>
-        </div>
+        <div class="grid lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div id="bg-dropzone" class="border-2 border-dashed border-white/10 rounded-3xl p-10 text-center hover:bg-white/5 transition-all cursor-pointer h-80 flex flex-col items-center justify-center relative overflow-hidden" onclick="document.getElementById('bg-file').click()">
+                    <input type="file" id="bg-file" class="hidden" accept="image/*" onchange="removeBackground(this)">
+                    <div id="bg-placeholder" class="z-10">
+                        <div class="text-5xl mb-4">✂️</div>
+                        <p class="text-sm font-medium text-gray-400 uppercase tracking-widest">Escolha uma foto</p>
+                    </div>
+                    <img id="bg-original-preview" class="hidden absolute inset-0 w-full h-full object-contain p-4 opacity-30">
+                </div>
+            </div>
 
+            <div class="bg-white/5 rounded-3xl border border-white/10 p-6 flex flex-col items-center justify-center space-y-4 min-h-[320px] relative">
+                <div id="bg-loader" class="hidden absolute inset-0 bg-black/80 z-20 flex flex-col items-center justify-center rounded-3xl">
+                    <div class="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-[10px] font-bold uppercase tracking-[3px] animate-pulse">A Processar IA...</p>
+                </div>
+                
+                <div id="bg-result-container" class="hidden w-full text-center space-y-4">
+                    <div class="bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')] rounded-2xl p-4 inline-block">
+                        <img id="bg-result-img" class="max-h-64 object-contain">
+                    </div>
+                    <button onclick="downloadResult()" class="w-full py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest hover:opacity-90 transition">📥 Descarregar PNG Transparente</button>
+                </div>
+
+                <p id="bg-empty-msg" class="text-[10px] opacity-30 uppercase font-bold text-center">O resultado aparecerá aqui sem o fundo</p>
+            </div>
+        </div>
     </div>
+</section>
 
-    <script>
-        const qrContainer = document.getElementById('qrcode');
-        const generateBtn = document.getElementById('generate-btn');
-        const downloadBtn = document.getElementById('download-btn');
-        let qrcodeInstance = null;
 
-        // Função principal para gerar o QR Code
-        function generateQR() {
-            const text = document.getElementById('qr-text').value || "https://github.com";
-            const colorDark = document.getElementById('color-dark').value;
-            const colorLight = document.getElementById('color-light').value;
-            const dotStyle = document.getElementById('dot-style').value;
-            const logoFile = document.getElementById('logo-input').files[0];
 
-            // Limpa o QR Code anterior
-            qrContainer.innerHTML = "";
+    </main>
 
-            const options = {
-                text: text,
-                width: 280,
-                height: 280,
-                colorDark: colorDark,
-                colorLight: colorLight,
-                // CORREÇÃO DE ERRO: Nível 'H' (High) permite 30% de recuperação, essencial para logos.
-                correctLevel: QRCode.CorrectLevel.H, 
-                
-                // Customização de estilo (Dot Style)
-                dotScale: 1,
-                quietZone: 15,
-                
-                // Se arredondado, aplicamos o valor para o estilo
-                timing_X: dotStyle === 'rounded' ? { opacity: 1 } : null,
-                timing_Y: dotStyle === 'rounded' ? { opacity: 1 } : null,
-                
-                // Configuração do Logo (será preenchido se houver ficheiro)
-                logo: undefined,
-                logoWidth: 80, 
-                logoHeight: 80,
-                logoBackgroundTransparent: false
-            };
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/qr-tool.js"></script>
+    <script src="assets/js/ocr-tool.js"></script>
+    <script src="assets/js/formatter-tool.js"></script>
+    <script src="assets/js/units-tool.js"></script>
+    <script src="assets/js/palette-tool.js"></script>
+    <script src="assets/js/translate-tool.js"></script>
+    <script src="assets/js/bg-tool.js"></script>
 
-            // Lógica para processar o logo se existir
-            if (logoFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    options.logo = e.target.result;
-                    renderQR(options);
-                };
-                reader.readAsDataURL(logoFile);
-            } else {
-                renderQR(options);
-            }
-        }
-
-        function renderQR(options) {
-            qrcodeInstance = new QRCode(qrContainer, options);
-        }
-
-        // Função de Download
-        downloadBtn.onclick = function() {
-            const canvas = qrContainer.querySelector('canvas');
-            if (canvas) {
-                const link = document.createElement('a');
-                link.download = 'meu-qrcode.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            } else {
-                alert("Gere um QR Code primeiro!");
-            }
-        };
-
-        generateBtn.onclick = generateQR;
-
-        // Gerar um inicial ao carregar a página
-        window.onload = generateQR;
-    </script>
 </body>
 </html>
