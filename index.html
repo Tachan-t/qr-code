@@ -101,6 +101,7 @@
             <button onclick="showTool('palette-tool')" id="btn-palette" class="nav-btn"><span>🎨</span> Palette Extractor</button>
             <button onclick="showTool('translate-tool')" id="btn-translate" class="nav-btn"><span>🌐</span> Voice & Translate</button>
             <button onclick="showTool('bg-remove-tool')" id="btn-bg" class="nav-btn"><span>👤</span> BG Remover</button>
+            <button onclick="showTool('dl-tool')" id="btn-dl" class="nav-btn"><span>📥</span> Media Downloader</button>
         </nav>
 
         <div class="mt-auto p-4 glass text-[10px] opacity-40 text-center font-bold">
@@ -273,6 +274,55 @@
             </div>
         </section>
 
+        <section id="dl-tool" class="tool-section hidden">
+            <div class="glass p-8 space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-3xl font-black italic uppercase tracking-tighter text-white">Media Downloader</h3>
+                    <span class="text-[10px] border border-white/20 px-3 py-1 rounded-full opacity-60 uppercase font-bold text-green-400">API Necessária</span>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="bg-white/5 p-6 rounded-3xl border border-white/10 space-y-4">
+                            <h4 class="text-[10px] font-bold uppercase opacity-40 tracking-widest">Configurações</h4>
+                            
+                            <input type="text" id="dl-url" placeholder="Cole o link do vídeo aqui..." class="w-full p-4 rounded-xl text-sm">
+                            
+                            <select id="dl-format" class="w-full p-4 rounded-xl text-sm bg-black cursor-pointer">
+                                <option value="best" class="text-black">Vídeo (Melhor Qualidade MP4)</option>
+                                <option value="720p" class="text-black">Vídeo (720p MP4)</option>
+                                <option value="audio" class="text-black">Apenas Áudio (MP3)</option>
+                            </select>
+
+                            <button onclick="iniciarDownload()" class="w-full py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest hover:opacity-90 transition mt-4">
+                                🚀 Baixar Mídia
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/5 p-6 rounded-3xl border border-white/10 flex flex-col justify-center items-center relative overflow-hidden min-h-[250px]">
+                        
+                        <div id="dl-idle" class="text-center space-y-2">
+                            <div class="text-5xl opacity-50 mb-4">🎬</div>
+                            <p class="text-xs uppercase font-bold tracking-widest opacity-40">Aguardando URL</p>
+                        </div>
+
+                        <div id="dl-active" class="hidden w-full space-y-6">
+                            <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                                <span id="dl-status-text" class="text-blue-400">Processando...</span>
+                                <span id="dl-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                                <div id="dl-progress-bar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                            <p class="text-[9px] opacity-40 text-center text-wrap">Nota: O download via web requer um backend Python ativo para funcionar.</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="bg-remove-tool" class="tool-section hidden">
     <div class="glass p-8 space-y-6">
         <div class="flex justify-between items-center">
@@ -323,6 +373,7 @@
     <script src="assets/js/palette-tool.js"></script>
     <script src="assets/js/translate-tool.js"></script>
     <script src="assets/js/bg-tool.js"></script>
+    <script src="assets/js/dl-tool.js"></script>
 
 </body>
 </html>
